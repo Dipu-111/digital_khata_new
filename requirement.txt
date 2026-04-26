@@ -1,0 +1,86 @@
+DIGITAL KHATA - REQUIREMENTS
+================================
+
+TECH STACK:
+- Flutter + Riverpod
+- Hive (Local Database)
+- Fingerprint (local_auth)
+- SharedPreferences
+
+USER AUTHENTICATION:
+- Register: Shop name, Owner name, Phone number, Password
+- Login: Phone number + Password
+- Phone number must be unique
+- Each user sees their own data only
+
+CUSTOMER MANAGEMENT:
+- Add customer (Name, Phone, Address)
+- Edit customer
+- Delete customer
+- View customer list with due amount
+- Search customer
+
+TRANSACTIONS:
+- Credit (customer takes goods - they owe you)
+- Payment (customer pays you)
+- Edit transaction
+- Delete transaction
+- View transaction history per customer
+- Option to add initial credit when adding customer
+
+DASHBOARD/HOME SCREEN:
+- Total due amount across all customers
+- List of all customers with their individual due
+- Bottom navigation: Customers | Reports
+
+REPORTS SCREEN:
+- Total Credit (sum of all credits)
+- Total Payment (sum of all payments)
+- Net Balance (Credit - Payment)
+- Recent transactions list (last 10)
+
+REMINDER:
+- WhatsApp reminder button in customer detail screen
+- Pre-filled message with customer name, due amount, shop name
+
+FINGERPRINT LOGIN:
+- Enable/disable fingerprint login
+- Auto-login with fingerprint if enabled
+- Secure storage of credentials
+
+REMEMBER ME / STAY LOGGED IN:
+- "Remember me" checkbox on login
+- User stays logged in after app restart
+- Logout button clears session
+
+UI REQUIREMENTS:
+- Colors: Navy blue (#1D293D), White, Black, Light gray
+- Labels above text fields (not inside)
+- Prefix icons on all fields
+- Rounded corners (12-14px)
+- Gradient header on login/register screens
+
+DATABASE STRUCTURE:
+- Box "users": id, shopName, ownerName, phone, password, createdAt
+- Box "customers": id, userId, name, phone, address, createdAt  
+- Box "transactions": id, userId, customerId, type, amount, description, date
+
+PACKAGES USED:
+- flutter_riverpod: ^2.4.0
+- hive_flutter: ^1.1.0
+- hive_generator: ^2.0.0
+- build_runner: ^2.4.0
+- path_provider: ^2.1.0
+- intl: ^0.18.0
+- share_plus: ^7.0.0
+- local_auth: ^2.1.6
+- flutter_secure_storage: ^9.0.0
+- shared_preferences: ^2.2.2
+
+ANDROID SETUP:
+- minSdk = 23 (for fingerprint)
+- Add permission: USE_BIOMETRIC
+
+================================
+FEATURES COMPLETED: YES
+================================
