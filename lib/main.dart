@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/database/hive_service.dart';
 import 'package:digital_khata_new/screens/login_screen.dart';
+import 'package:digital_khata_new/screens/home_screen.dart';
 import 'package:digital_khata_new/providers/theme_provider.dart';
+import 'package:digital_khata_new/services/biometric_service.dart';
+import 'package:digital_khata_new/providers/auth_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,14 +13,61 @@ void main() async {
   runApp(const ProviderScope(child: DigitalKhataApp()));
 }
 
-class DigitalKhataApp extends ConsumerWidget {
-  
+class DigitalKhataApp extends ConsumerStatefulWidget {
   const DigitalKhataApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DigitalKhataApp> createState() => _DigitalKhataAppState();
+}
+
+class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
+  bool _isLoading = true;
+  bool _isLoggedIn = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    // Check if user was previously logged in
+    final isLoggedIn = await BiometricService.isAlreadyLoggedIn();
+    final userId = await BiometricService.getLoggedInUserId();
+
+    if (isLoggedIn && userId != null) {
+      // Get user from database
+      final user = HiveService.getUserById(userId);
+      if (user != null) {
+        // Set the user in auth provider
+        ref.read(authProvider.notifier).setUser(user);
+        setState(() {
+          _isLoggedIn = true;
+        });
+      }
+    }
+
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeProvider);
-    
+
+    if (_isLoading) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(
+              color: const Color(0xFF1D293D),
+            ),
+          ),
+        ),
+      );
+    }
+
     return MaterialApp(
       title: 'Digital Khata',
       debugShowCheckedModeBanner: false,
@@ -47,7 +97,8 @@ class DigitalKhataApp extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -85,7 +136,8 @@ class DigitalKhataApp extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -98,7 +150,7 @@ class DigitalKhataApp extends ConsumerWidget {
         ),
         useMaterial3: true,
       ),
-      home: const LoginScreen(),
+      home: _isLoggedIn ? const HomeScreen() : const LoginScreen(),
     );
   }
 }

@@ -1,21 +1,18 @@
-import 'package:digital_khata_new/models/customer.dart';
-import 'package:digital_khata_new/models/transaction.dart';
-import 'package:digital_khata_new/services/backup_service.dart';
-import 'package:digital_khata_new/services/pdf_receipt_service.dart';
-import 'package:file_picker/file_picker.dart';
+import 'package:digital_khata_new/screens/more_screen.dart';
+import 'package:digital_khata_new/screens/remainders_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
 import 'package:digital_khata_new/providers/customer_provider.dart';
 import 'package:digital_khata_new/providers/transaction_provider.dart';
 import 'package:digital_khata_new/providers/theme_provider.dart';
-import 'package:digital_khata_new/screens/customer_detail_screen.dart';
 import 'package:digital_khata_new/screens/add_customer_screen.dart';
+import 'package:digital_khata_new/screens/customer_detail_screen.dart';
 import 'package:digital_khata_new/screens/login_screen.dart';
 import 'package:digital_khata_new/screens/reports_screen.dart';
 import 'package:digital_khata_new/services/biometric_service.dart';
 import 'package:digital_khata_new/services/export_service.dart';
-import 'package:digital_khata_new/widgets/edit_customer_dialog.dart';
+import 'package:digital_khata_new/services/backup_service.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -28,33 +25,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  Future<void> _printAllCustomersSummary() async {
-    final user = ref.read(authProvider);
-    final customers = ref.read(customerProvider);
-
-    if (user == null) return;
-
-    await PdfReceiptService.printAllCustomersSummary(
-      customers: customers,
-      getCustomerBalance: (customerId) {
-        return ref
-            .read(transactionProvider.notifier)
-            .getCustomerBalance(customerId);
-      },
-      shopName: user.shopName,
-      ownerName: user.ownerName,
-      shopPhone: user.phone,
-    );
-  }
 
   void _showLogoutDialog() {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text('Logout'),
           content: const Text('Are you sure you want to logout?'),
           actions: [
@@ -75,9 +53,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('Logout'),
             ),
           ],
@@ -86,77 +62,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  void _showCustomerOptions(Customer customer) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.edit, color: Color(0xFF1D293D)),
-              title: const Text('Edit Customer'),
-              onTap: () {
-                Navigator.pop(context);
-                showDialog(
-                  context: context,
-                  builder: (_) => EditCustomerDialog(customer: customer),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.delete, color: Colors.red),
-              title: const Text('Delete Customer',
-                  style: TextStyle(color: Colors.red)),
-              onTap: () {
-                Navigator.pop(context);
-                _showDeleteCustomerConfirmation(customer.id);
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showDeleteCustomerConfirmation(String customerId) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Customer'),
-        content: const Text(
-            'This will also delete all transactions for this customer. Are you sure?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              await ref
-                  .read(customerProvider.notifier)
-                  .deleteCustomer(customerId);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Customer deleted successfully')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _backupData() async {
+  void _backupData() async {
     final user = ref.read(authProvider);
     final customers = ref.read(customerProvider);
     final transactions = ref.read(transactionProvider);
@@ -171,110 +77,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Backup created and shared!')),
+        const SnackBar(content: Text('Backup created!')),
       );
     }
   }
 
-  Future<void> _restoreData() async {
-    try {
-      // Pick backup file
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['json'],
-      );
+  void _exportData() async {
+    final user = ref.read(authProvider);
+    final customers = ref.read(customerProvider);
+    final transactions = ref.read(transactionProvider);
 
-      if (result == null) return;
+    if (user == null) return;
 
-      final filePath = result.files.single.path!;
-      final backupData = await BackupService.restoreBackup(filePath);
-
-      if (backupData == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Invalid backup file')),
-        );
-        return;
-      }
-
-      // Show confirmation dialog
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Restore Data'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                  'This will replace all current data with backup data.'),
-              const SizedBox(height: 8),
-              Text('Backup date: ${backupData['backupDate']}'),
-              Text('Customers: ${(backupData['customers'] as List).length}'),
-              Text(
-                  'Transactions: ${(backupData['transactions'] as List).length}'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('Restore'),
-            ),
-          ],
-        ),
-      );
-
-      if (confirmed != true) return;
-
-      // Restore customers
-      final customersList = (backupData['customers'] as List)
-          .map((c) => Customer(
-                id: c['id'],
-                userId: c['userId'],
-                name: c['name'],
-                phone: c['phone'],
-                address: c['address'],
-                createdAt: DateTime.parse(c['createdAt']),
-              ))
-          .toList();
-
-      // Restore transactions
-      final transactionsList = (backupData['transactions'] as List)
-          .map((t) => Transaction(
-                id: t['id'],
-                userId: t['userId'],
-                customerId: t['customerId'],
-                type: t['type'],
-                amount: t['amount'].toDouble(),
-                description: t['description'],
-                date: DateTime.parse(t['date']),
-                updatedAt: t['updatedAt'] != null
-                    ? DateTime.parse(t['updatedAt'])
-                    : null,
-              ))
-          .toList();
-
-      await ref.read(customerProvider.notifier).restoreCustomers(customersList);
-      await ref
-          .read(transactionProvider.notifier)
-          .restoreTransactions(transactionsList);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Data restored successfully!')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Restore failed: $e')),
-      );
-    }
+    await ExportService.exportToCSV(
+      customers: customers,
+      transactions: transactions,
+      shopName: user.shopName,
+    );
   }
 
   @override
@@ -282,7 +101,20 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final user = ref.watch(authProvider);
     final customers = ref.watch(customerProvider);
     final allTransactions = ref.watch(transactionProvider);
+    final totalDue = ref.watch(transactionProvider.notifier).getTotalDue();
     final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
+
+    // Calculate totals for ReportsScreen
+    double totalCredit = 0;
+    double totalPayment = 0;
+    for (var t in allTransactions) {
+      if (t.type == 'credit') {
+        totalCredit += t.amount;
+      } else if (t.type == 'payment') {
+        totalPayment += t.amount;
+      }
+    }
+    final netBalance = totalCredit - totalPayment;
 
     final filteredCustomers = _searchQuery.isEmpty
         ? customers
@@ -292,83 +124,82 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 c.phone.contains(_searchQuery))
             .toList();
 
-    double totalCredit = 0;
-    double totalPayment = 0;
-
-    for (var t in allTransactions) {
-      if (t.type == 'credit') {
-        totalCredit += t.amount;
-      } else if (t.type == 'payment') {
-        totalPayment += t.amount;
-      }
-    }
-
-    final netBalance = totalCredit - totalPayment;
+    final List<Widget> _screens = [
+      _buildHomeContent(user, filteredCustomers, totalDue, isDarkMode),
+      ReportsScreen(
+        totalCredit: totalCredit,
+        totalPayment: totalPayment,
+        netBalance: netBalance,
+        transactions: allTransactions,
+        customers: customers,
+      ),
+      const RemindersScreen(),
+      const MoreScreen(),
+    ];
 
     return Scaffold(
       backgroundColor:
           isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        title: const Text('Digital Khata'),
-        backgroundColor: const Color(0xFF1D293D),
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () {
-              setState(() {
-                _searchQuery = _searchQuery.isEmpty ? ' ' : '';
-                if (_searchQuery.isNotEmpty) {
-                  _searchController.clear();
-                }
-              });
-            },
-            icon: Icon(_searchQuery.isEmpty ? Icons.search : Icons.close),
+      body: _screens[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+        selectedItemColor: const Color(0xFF1D293D),
+        unselectedItemColor: const Color(0xFF6B7280),
+        elevation: 8,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: 'Home',
           ),
-          IconButton(
-            onPressed: () {
-              ref.read(themeProvider.notifier).toggleTheme();
-            },
-            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart_outlined),
+            activeIcon: Icon(Icons.bar_chart),
+            label: 'Reports',
           ),
-          IconButton(
-            onPressed: () async {
-              await ExportService.exportToCSV(
-                customers: customers,
-                transactions: allTransactions,
-                shopName: user?.shopName ?? 'Digital Khata',
-              );
-            },
-            icon: const Icon(Icons.file_download),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.notifications_none_outlined),
+            activeIcon: Icon(Icons.notifications),
+            label: 'Reminders',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.more_horiz),
+            activeIcon: Icon(Icons.more_horiz),
+            label: 'More',
           ),
         ],
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
       ),
       drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              // Drawer Header - Profile Section
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1D293D),
-                ),
+        child: Column(
+          children: [
+            // Drawer Header
+            Container(
+              width: double.infinity,
+              height: 160,
+              decoration: const BoxDecoration(color: Color(0xFF1D293D)),
+              child: Center(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.white,
-                      child: Icon(
-                        Icons.store,
-                        size: 35,
-                        color: Color(0xFF1D293D),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
                       ),
+                      child: const Icon(Icons.store,
+                          size: 40, color: Colors.white),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      user?.shopName ?? 'Shop Name',
+                      user?.shopName ?? 'Digital Khata',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -376,150 +207,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      user?.ownerName ?? 'Owner Name',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withOpacity(0.8),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.phone ?? 'Phone Number',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withOpacity(0.7),
-                      ),
+                    const Text(
+                      'Digital Khata',
+                      style: TextStyle(fontSize: 12, color: Colors.white70),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              // Drawer Items
-              ListTile(
-                leading: const Icon(Icons.dashboard),
-                title: const Text('Dashboard'),
-                tileColor: _currentIndex == 0 ? Colors.grey.shade100 : null,
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.people),
-                title: const Text('Customers'),
-                tileColor: _currentIndex == 0 ? Colors.grey.shade100 : null,
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 0;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.bar_chart),
-                title: const Text('Reports'),
-                tileColor: _currentIndex == 1 ? Colors.grey.shade100 : null,
-                onTap: () {
-                  setState(() {
-                    _currentIndex = 1;
-                  });
-                  Navigator.pop(context);
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: Icon(
-                  isDarkMode ? Icons.light_mode : Icons.dark_mode,
-                ),
-                title: const Text('Dark Mode'),
-                trailing: Switch(
-                  value: isDarkMode,
-                  onChanged: (value) {
+            ),
+            // Drawer Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _buildDrawerItem(Icons.home, 'Home', () {
+                    setState(() => _currentIndex = 0);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.people, 'Customers', () {
+                    setState(() => _currentIndex = 0);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.bar_chart, 'Reports', () {
+                    setState(() => _currentIndex = 1);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                    setState(() => _currentIndex = 2);
+                    Navigator.pop(context);
+                  }),
+                  const Divider(color: Color(0xFFE5E7EB)),
+                  _buildDrawerItem(Icons.cloud, 'Backup Data', () {
+                    Navigator.pop(context);
+                    _backupData();
+                  }),
+                  _buildDrawerItem(Icons.file_download, 'Export Excel', () {
+                    Navigator.pop(context);
+                    _exportData();
+                  }),
+                  _buildDrawerItem(Icons.dark_mode, 'Dark Mode', () {
                     ref.read(themeProvider.notifier).toggleTheme();
                     Navigator.pop(context);
-                  },
-                  activeColor: const Color(0xFF1D293D),
-                ),
+                  }),
+                  _buildDrawerItem(Icons.help, 'Help & Support', () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Help & Support coming soon')),
+                    );
+                  }),
+                  const Divider(color: Color(0xFFE5E7EB)),
+                  _buildDrawerItem(Icons.logout, 'Logout', () {
+                    Navigator.pop(context);
+                    _showLogoutDialog();
+                  }, isLogout: true),
+                ],
               ),
-              ListTile(
-                leading: const Icon(Icons.print, color: Color(0xFF1D293D)),
-                title: const Text('Print Summary Report'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _printAllCustomersSummary();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.backup, color: Color(0xFF1D293D)),
-                title: const Text('Backup Data'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _backupData();
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.restore, color: Color(0xFF1D293D)),
-                title: const Text('Restore Data'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _restoreData();
-                },
-              ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.logout, color: Colors.red),
-                title: const Text(
-                  'Logout',
-                  style: TextStyle(color: Colors.red),
-                ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _showLogoutDialog();
-                },
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: [
-          _buildCustomerListTab(filteredCustomers),
-          ReportsScreen(
-            totalCredit: totalCredit,
-            totalPayment: totalPayment,
-            netBalance: netBalance,
-            transactions: allTransactions,
-            customers: customers,
-          ),
-        ],
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-        selectedItemColor: const Color(0xFF1D293D),
-        unselectedItemColor: Colors.grey.shade500,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
-            label: 'Customers',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart_outlined),
-            activeIcon: Icon(Icons.bar_chart),
-            label: 'Reports',
-          ),
-        ],
       ),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
@@ -527,174 +273,353 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const AddCustomerScreen()),
-                );
+                ).then((_) {
+                  setState(() {});
+                });
               },
               backgroundColor: const Color(0xFF1D293D),
-              elevation: 8,
+              elevation: 6,
               child: const Icon(Icons.add, color: Colors.white),
             )
           : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }
 
-  Widget _buildCustomerListTab(List<Customer> customers) {
-    final totalDue = ref.read(transactionProvider.notifier).getTotalDue();
-    final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
+  Widget _buildDrawerItem(IconData icon, String title, VoidCallback onTap,
+      {bool isLogout = false}) {
+    return ListTile(
+      leading:
+          Icon(icon, color: isLogout ? Colors.red : const Color(0xFF6B7280)),
+      title: Text(
+        title,
+        style:
+            TextStyle(color: isLogout ? Colors.red : const Color(0xFF1D293D)),
+      ),
+      onTap: onTap,
+    );
+  }
 
-    return Column(
-      children: [
-        // Small Total Due Card
-        Container(
-          width: double.infinity,
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: totalDue > 0 ? Colors.red.shade50 : Colors.green.shade50,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: totalDue > 0 ? Colors.red.shade200 : Colors.green.shade200,
-              width: 0.8,
+  Widget _buildHomeContent(
+      user, List customers, double totalDue, bool isDarkMode) {
+    final filteredCustomers = _searchQuery.isEmpty
+        ? customers
+        : customers
+            .where((c) =>
+                c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                c.phone.contains(_searchQuery))
+            .toList();
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? const Color(0xFF0F172A) : Colors.white,
+      appBar: AppBar(
+        title: Text(
+          user?.shopName ?? 'Digital Khata',
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
+        backgroundColor: const Color(0xFF1D293D),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            // Drawer Header
+            Container(
+              width: double.infinity,
+              height: 160,
+              decoration: const BoxDecoration(color: Color(0xFF1D293D)),
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.store,
+                          size: 40, color: Colors.white),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      user?.shopName ?? 'Digital Khata',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    const Text(
+                      'Digital Khata',
+                      style: TextStyle(fontSize: 12, color: Colors.white70),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'Total Due Amount:',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+            // Drawer Items
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  _buildDrawerItem(Icons.home, 'Home', () {
+                    setState(() => _currentIndex = 0);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.people, 'Customers', () {
+                    setState(() => _currentIndex = 0);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.bar_chart, 'Reports', () {
+                    setState(() => _currentIndex = 1);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                    setState(() => _currentIndex = 2);
+                    Navigator.pop(context);
+                  }),
+                  const Divider(color: Color(0xFFE5E7EB)),
+                  _buildDrawerItem(Icons.cloud, 'Backup Data', () {
+                    Navigator.pop(context);
+                    _backupData();
+                  }),
+                  _buildDrawerItem(Icons.file_download, 'Export Excel', () {
+                    Navigator.pop(context);
+                    _exportData();
+                  }),
+                  _buildDrawerItem(Icons.dark_mode, 'Dark Mode', () {
+                    ref.read(themeProvider.notifier).toggleTheme();
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.help, 'Help & Support', () {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('Help & Support coming soon')),
+                    );
+                  }),
+                  const Divider(color: Color(0xFFE5E7EB)),
+                  _buildDrawerItem(Icons.logout, 'Logout', () {
+                    Navigator.pop(context);
+                    _showLogoutDialog();
+                  }, isLogout: true),
+                ],
               ),
-              Text(
-                'रु ${totalDue.toStringAsFixed(0)}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: totalDue > 0
-                      ? Colors.red.shade700
-                      : Colors.green.shade700,
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-        // Customer List Header
-        Padding(
+      ),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {});
+          return Future.value();
+        },
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
             children: [
-              const Text(
-                'My Customers',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+              const SizedBox(height: 8),
+
+              // Search Bar
+              Container(
+                decoration: BoxDecoration(
+                  color: isDarkMode
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFFF5F7FA),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  style: TextStyle(
+                      color:
+                          isDarkMode ? Colors.white : const Color(0xFF1D293D)),
+                  decoration: InputDecoration(
+                    hintText: 'Search customers...',
+                    hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                    prefixIcon:
+                        const Icon(Icons.search, color: Color(0xFF6B7280)),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  onChanged: (value) => setState(() => _searchQuery = value),
                 ),
               ),
-              Text(
-                '${customers.length} customers',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade500,
+
+              const SizedBox(height: 16),
+
+              // Total Due Card
+              Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        // Customer List
-        Expanded(
-          child: customers.isEmpty
-              ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.people_outline, size: 48, color: Colors.grey),
-                      SizedBox(height: 8),
-                      Text('No customers added yet'),
+                      const Text(
+                        'TOTAL PENDING (DUE)',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Color(0xFF6B7280),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        'रु ${totalDue.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFFDC2626),
+                        ),
+                      ),
                     ],
                   ),
-                )
-              : ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: customers.length,
-                  itemBuilder: (context, index) {
-                    final customer = customers[index];
-                    final balance = ref
-                        .read(transactionProvider.notifier)
-                        .getCustomerBalance(customer.id);
+                ),
+              ),
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 10),
-                      decoration: BoxDecoration(
-                        color:
-                            isDarkMode ? const Color(0xFF1E293B) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.03),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: ListTile(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  CustomerDetailScreen(customer: customer),
+              const SizedBox(height: 16),
+
+              // Customer List Header
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'All Customers',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                  Text(
+                    '${filteredCustomers.length} customers',
+                    style:
+                        const TextStyle(fontSize: 12, color: Color(0xFF6B7280)),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              // Customer List
+              Expanded(
+                child: filteredCustomers.isEmpty
+                    ? const Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.people_outline,
+                                size: 48, color: Color(0xFF6B7280)),
+                            SizedBox(height: 8),
+                            Text('No customers found',
+                                style: TextStyle(color: Color(0xFF6B7280))),
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        itemCount: filteredCustomers.length,
+                        separatorBuilder: (_, __) =>
+                            const Divider(color: Color(0xFFE5E7EB), height: 1),
+                        itemBuilder: (context, index) {
+                          final customer = filteredCustomers[index];
+                          final balance = ref
+                              .watch(transactionProvider.notifier)
+                              .getCustomerBalance(customer.id);
+
+                          return InkWell(
+                            onTap: () async {
+                              await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CustomerDetailScreen(customer: customer),
+                                ),
+                              );
+                              setState(() {});
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor: const Color(0xFFF5F7FA),
+                                    radius: 22,
+                                    child: Text(
+                                      customer.name[0].toUpperCase(),
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 16,
+                                        color: Color(0xFF1D293D),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          customer.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 16,
+                                            color: Color(0xFF1D293D),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          customer.phone,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: Color(0xFF6B7280),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Text(
+                                    'रु ${balance.toStringAsFixed(0)}',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 15,
+                                      color: balance > 0
+                                          ? const Color(0xFFDC2626)
+                                          : const Color(0xFF16A34A),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
-                        onLongPress: () {
-                          _showCustomerOptions(customer);
-                        },
-                        leading: CircleAvatar(
-                          radius: 20,
-                          backgroundColor: balance > 0
-                              ? Colors.red.shade50
-                              : Colors.green.shade50,
-                          child: Text(
-                            customer.name[0].toUpperCase(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: balance > 0
-                                  ? Colors.red.shade600
-                                  : Colors.green.shade600,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          customer.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                            fontSize: 15,
-                          ),
-                        ),
-                        subtitle: Text(
-                          customer.phone,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                        trailing: Text(
-                          'रु ${balance.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                            color: balance > 0
-                                ? Colors.red.shade600
-                                : Colors.green.shade600,
-                          ),
-                        ),
                       ),
-                    );
-                  },
-                ),
+              ),
+            ],
+          ),
         ),
-      ],
+      ),
     );
   }
 }

@@ -40,12 +40,19 @@ dependencies:
   # for printing
   pdf: ^3.10.0
   printing: ^5.11.0
-  file_picker: ^6.1.1
+  file_picker: ^8.0.0 
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.13.1
 
 flutter:
   uses-material-design: true
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/images/DK.png"
+  adaptive_icon_background: "#1D293D"
+  adaptive_icon_foreground: "assets/images/DK.png"

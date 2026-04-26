@@ -1,3 +1,4 @@
+import 'package:digital_khata_new/services/biometric_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
@@ -38,6 +39,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     setState(() => _isLoading = false);
 
     if (success && mounted) {
+      // ✅ ADD THIS - Save login state
+      final user = ref.read(authProvider);
+      if (user != null) {
+        await BiometricService.saveLoginState(user.id, true);
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const HomeScreen()),

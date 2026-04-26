@@ -43,6 +43,9 @@ class AuthNotifier extends StateNotifier<User?> {
     }
     return false;
   }
+  void setUser(User user) {
+  state = user;
+}
   
   void logout() {
     state = null;
