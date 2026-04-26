@@ -11,6 +11,7 @@ void main() async {
 }
 
 class DigitalKhataApp extends ConsumerWidget {
+  
   const DigitalKhataApp({super.key});
 
   @override
