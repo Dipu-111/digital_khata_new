@@ -1,3 +1,4 @@
+import 'package:digital_khata_new/models/expense.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:digital_khata_new/models/user.dart';
 import 'package:digital_khata_new/models/customer.dart';
@@ -11,6 +12,8 @@ class HiveService {
   static late Box<User> userBox;
   static late Box<Customer> customerBox;
   static late Box<Transaction> transactionBox;
+  static late Box<Expense> expenseBox;
+static late Box<Budget> budgetBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -24,6 +27,9 @@ class HiveService {
     userBox = await Hive.openBox<User>(usersBox);
     customerBox = await Hive.openBox<Customer>(customersBox);
     transactionBox = await Hive.openBox<Transaction>(transactionsBox);
+    expenseBox = await Hive.openBox<Expense>('expenses');
+budgetBox = await Hive.openBox<Budget>('budget');
+
   }
 
   // ==================== USER METHODS ====================
@@ -175,4 +181,37 @@ class HiveService {
     }
     return total;
   }
+
+
+
+
+// Expense methods
+static Future<void> addExpense(Expense expense) async {
+  await expenseBox.put(expense.id, expense);
+}
+
+static Future<void> updateExpense(Expense expense) async {
+  await expenseBox.put(expense.id, expense);
+}
+
+static Future<void> deleteExpense(String id) async {
+  await expenseBox.delete(id);
+}
+
+static List<Expense> getExpensesByUserId(String userId) {
+  return expenseBox.values.where((e) => e.userId == userId).toList();
+}
+
+static Expense? getExpenseById(String id) {
+  return expenseBox.get(id);
+}
+
+// Budget methods
+static Future<void> saveBudget(Budget budget) async {
+  await budgetBox.put(budget.userId, budget);
+}
+
+static Budget? getBudget(String userId) {
+  return budgetBox.get(userId);
+}
 }

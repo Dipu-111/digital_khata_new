@@ -1,5 +1,6 @@
 import 'package:digital_khata_new/screens/more_screen.dart';
-import 'package:digital_khata_new/screens/remainders_screen.dart';
+import 'package:digital_khata_new/screens/expenses_screen.dart';
+import 'package:digital_khata_new/screens/reminders_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
@@ -133,6 +134,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         transactions: allTransactions,
         customers: customers,
       ),
+      const ExpensesScreen(),
       const RemindersScreen(),
       const MoreScreen(),
     ];
@@ -159,6 +161,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             label: 'Reports',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.wallet_outlined),
+            activeIcon: Icon(Icons.wallet),
+            label: 'Expenses',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.notifications_none_outlined),
             activeIcon: Icon(Icons.notifications),
             label: 'Reminders',
@@ -176,113 +183,53 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           });
         },
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            // Drawer Header
-            Container(
-              width: double.infinity,
-              height: 160,
-              decoration: const BoxDecoration(color: Color(0xFF1D293D)),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.store,
-                          size: 40, color: Colors.white),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      user?.shopName ?? 'Digital Khata',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Digital Khata',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                    ),
-                  ],
+      floatingActionButton: _currentIndex == 0
+          ? Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF1D293D), Color(0xFF2D3A4D)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-              ),
-            ),
-            // Drawer Items
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  _buildDrawerItem(Icons.home, 'Home', () {
-                    setState(() => _currentIndex = 0);
-                    Navigator.pop(context);
-                  }),
-                  _buildDrawerItem(Icons.people, 'Customers', () {
-                    setState(() => _currentIndex = 0);
-                    Navigator.pop(context);
-                  }),
-                  _buildDrawerItem(Icons.bar_chart, 'Reports', () {
-                    setState(() => _currentIndex = 1);
-                    Navigator.pop(context);
-                  }),
-                  _buildDrawerItem(Icons.notifications, 'Reminders', () {
-                    setState(() => _currentIndex = 2);
-                    Navigator.pop(context);
-                  }),
-                  const Divider(color: Color(0xFFE5E7EB)),
-                  _buildDrawerItem(Icons.cloud, 'Backup Data', () {
-                    Navigator.pop(context);
-                    _backupData();
-                  }),
-                  _buildDrawerItem(Icons.file_download, 'Export Excel', () {
-                    Navigator.pop(context);
-                    _exportData();
-                  }),
-                  _buildDrawerItem(Icons.dark_mode, 'Dark Mode', () {
-                    ref.read(themeProvider.notifier).toggleTheme();
-                    Navigator.pop(context);
-                  }),
-                  _buildDrawerItem(Icons.help, 'Help & Support', () {
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                          content: Text('Help & Support coming soon')),
-                    );
-                  }),
-                  const Divider(color: Color(0xFFE5E7EB)),
-                  _buildDrawerItem(Icons.logout, 'Logout', () {
-                    Navigator.pop(context);
-                    _showLogoutDialog();
-                  }, isLogout: true),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AddCustomerScreen()),
-                ).then((_) {
-                  setState(() {});
-                });
-              },
-              backgroundColor: const Color(0xFF1D293D),
-              elevation: 6,
-              child: const Icon(Icons.add, color: Colors.white),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const AddCustomerScreen()),
+                  ).then((_) {
+                    setState(() {});
+                  });
+                },
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                hoverElevation: 0,
+                focusElevation: 0,
+                highlightElevation: 0,
+                icon: const Icon(Icons.add, size: 22),
+                label: const Text(
+                  'Add Customer',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
             )
           : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 
@@ -300,6 +247,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
+  // This now has its OWN AppBar and Drawer
   Widget _buildHomeContent(
       user, List customers, double totalDue, bool isDarkMode) {
     final filteredCustomers = _searchQuery.isEmpty
@@ -360,7 +308,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
             ),
-            // Drawer Items
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
@@ -377,8 +324,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     setState(() => _currentIndex = 1);
                     Navigator.pop(context);
                   }),
-                  _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                  _buildDrawerItem(Icons.wallet, 'Expenses', () {
                     setState(() => _currentIndex = 2);
+                    Navigator.pop(context);
+                  }),
+                  _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                    setState(() => _currentIndex = 3);
                     Navigator.pop(context);
                   }),
                   const Divider(color: Color(0xFFE5E7EB)),
@@ -441,8 +392,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 child: TextField(
                   controller: _searchController,
                   style: TextStyle(
-                      color:
-                          isDarkMode ? Colors.white : const Color(0xFF1D293D)),
+                    color: isDarkMode ? Colors.white : const Color(0xFF1D293D),
+                  ),
                   decoration: InputDecoration(
                     hintText: 'Search customers...',
                     hintStyle: const TextStyle(color: Color(0xFF6B7280)),

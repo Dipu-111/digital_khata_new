@@ -23,23 +23,33 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
     // Build reminder items based on customer data
     final reminderItems = _buildReminderItems(customers);
-    
+
     // Filter based on selected tab
     final filteredItems = _filterReminders(reminderItems, _selectedTab);
-    
+
     // Count pending reminders (customers with due amount > 0)
-    final pendingCount = reminderItems.where((item) => item['isOverdue'] == true || item['daysLeft'] <= 7).length;
+    final pendingCount = reminderItems
+        .where((item) => item['isOverdue'] == true || item['daysLeft'] <= 7)
+        .length;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
-      drawer: const CustomDrawer(
-        onMenuItemSelected: null,
+      backgroundColor:
+          isDarkMode ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+      drawer: CustomDrawer(
+        onMenuItemSelected: (index) {
+          if (index == 0) {
+            // Navigate to Home
+            Navigator.pushReplacementNamed(context, '/home');
+          } else if (index == 1) {
+            // Already on Reports - just close drawer
+            Navigator.pop(context);
+          } else if (index == 2) {
+            // Navigate to Reminders
+            Navigator.pushReplacementNamed(context, '/reminders');
+          }
+        },
       ),
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Reminders',
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -146,7 +156,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                 : ListView.separated(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     itemCount: filteredItems.length,
-                    separatorBuilder: (_, __) => const Divider(color: Color(0xFFE5E7EB), height: 1),
+                    separatorBuilder: (_, __) =>
+                        const Divider(color: Color(0xFFE5E7EB), height: 1),
                     itemBuilder: (context, index) {
                       final item = filteredItems[index];
                       return _buildReminderItem(item, isDarkMode);
@@ -182,7 +193,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
           decoration: BoxDecoration(
             color: isActive
                 ? const Color(0xFF1D293D)
-                : (isDarkMode ? const Color(0xFF1E293B) : const Color(0xFFF5F7FA)),
+                : (isDarkMode
+                    ? const Color(0xFF1E293B)
+                    : const Color(0xFFF5F7FA)),
             borderRadius: BorderRadius.circular(30),
           ),
           child: Center(
@@ -202,28 +215,32 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
   List<Map<String, dynamic>> _buildReminderItems(List<Customer> customers) {
     final items = <Map<String, dynamic>>[];
-    
+
     for (var customer in customers) {
-      final balance = ref.read(transactionProvider.notifier).getCustomerBalance(customer.id);
-      
+      final balance = ref
+          .read(transactionProvider.notifier)
+          .getCustomerBalance(customer.id);
+
       if (balance > 0) {
         // Get last transaction date
-        final transactions = ref.read(transactionProvider)
+        final transactions = ref
+            .read(transactionProvider)
             .where((t) => t.customerId == customer.id)
             .toList()
           ..sort((a, b) => b.date.compareTo(a.date));
-        
-        final lastTransactionDate = transactions.isNotEmpty ? transactions.first.date : null;
-        
+
+        final lastTransactionDate =
+            transactions.isNotEmpty ? transactions.first.date : null;
+
         // Calculate days since last transaction
         int daysSinceLast = 999;
         if (lastTransactionDate != null) {
           daysSinceLast = DateTime.now().difference(lastTransactionDate).inDays;
         }
-        
+
         final isOverdue = daysSinceLast > 30;
         final daysLeft = daysSinceLast > 30 ? 0 : 30 - daysSinceLast;
-        
+
         items.add({
           'customer': customer,
           'balance': balance,
@@ -234,21 +251,26 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
         });
       }
     }
-    
+
     // Sort by urgency (overdue first, then by days left)
     items.sort((a, b) {
       if (a['isOverdue'] && !b['isOverdue']) return -1;
       if (!a['isOverdue'] && b['isOverdue']) return 1;
       return a['daysLeft'].compareTo(b['daysLeft']);
     });
-    
+
     return items;
   }
 
-  List<Map<String, dynamic>> _filterReminders(List<Map<String, dynamic>> items, String tab) {
+  List<Map<String, dynamic>> _filterReminders(
+      List<Map<String, dynamic>> items, String tab) {
     if (tab == 'All') return items;
-    if (tab == 'Overdue') return items.where((item) => item['isOverdue'] == true).toList();
-    if (tab == 'Upcoming') return items.where((item) => item['isOverdue'] == false && item['daysLeft'] <= 7).toList();
+    if (tab == 'Overdue')
+      return items.where((item) => item['isOverdue'] == true).toList();
+    if (tab == 'Upcoming')
+      return items
+          .where((item) => item['isOverdue'] == false && item['daysLeft'] <= 7)
+          .toList();
     return items;
   }
 
@@ -261,7 +283,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
     String statusText;
     Color statusColor;
-    
+
     if (isOverdue) {
       statusText = 'Overdue';
       statusColor = const Color(0xFFDC2626);
@@ -319,7 +341,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   'Last transaction: $daysSinceLast days ago',
                   style: TextStyle(
                     fontSize: 11,
-                    color: isDarkMode ? Colors.grey.shade500 : const Color(0xFF6B7280),
+                    color: isDarkMode
+                        ? Colors.grey.shade500
+                        : const Color(0xFF6B7280),
                   ),
                 ),
               ],
@@ -330,7 +354,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: statusColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
@@ -350,7 +375,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   _sendReminder(customer, balance);
                 },
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF5F7FA),
                     borderRadius: BorderRadius.circular(20),
@@ -358,7 +384,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: const [
-                      Icon(Icons.notifications_none, size: 12, color: Color(0xFF1D293D)),
+                      Icon(Icons.notifications_none,
+                          size: 12, color: Color(0xFF1D293D)),
                       SizedBox(width: 4),
                       Text(
                         'Remind',
@@ -426,7 +453,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
-              color: isDarkMode ? Colors.grey.shade400 : const Color(0xFF1D293D),
+              color:
+                  isDarkMode ? Colors.grey.shade400 : const Color(0xFF1D293D),
             ),
           ),
           const SizedBox(height: 8),
@@ -435,7 +463,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13,
-              color: isDarkMode ? Colors.grey.shade500 : const Color(0xFF6B7280),
+              color:
+                  isDarkMode ? Colors.grey.shade500 : const Color(0xFF6B7280),
             ),
           ),
         ],

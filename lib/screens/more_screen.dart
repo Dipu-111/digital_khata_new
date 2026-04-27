@@ -225,7 +225,7 @@ class _MoreScreenState extends ConsumerState<MoreScreen> {
                       onChanged: (value) {
                         ref.read(themeProvider.notifier).toggleTheme();
                       },
-                      activeColor: const Color(0xFF1D293D),
+                      activeThumbColor: const Color(0xFF1D293D),
                     ),
                   ),
                   const Divider(color: Color(0xFFE5E7EB), height: 1),

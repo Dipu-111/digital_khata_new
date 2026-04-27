@@ -16,7 +16,7 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
   final _notesController = TextEditingController();
-  
+
   bool _isLoading = false;
   String? _selectedImagePath;
 
@@ -60,7 +60,9 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                             color: const Color(0xFFF5F7FA),
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                              color: isDarkMode
+                                  ? Colors.grey.shade700
+                                  : const Color(0xFFE5E7EB),
                               width: 1,
                             ),
                           ),
@@ -75,7 +77,9 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                                 : Icon(
                                     Icons.person_outline,
                                     size: 50,
-                                    color: isDarkMode ? Colors.grey.shade500 : const Color(0xFF6B7280),
+                                    color: isDarkMode
+                                        ? Colors.grey.shade500
+                                        : const Color(0xFF6B7280),
                                   ),
                           ),
                         ),
@@ -110,9 +114,9 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
-                  
+
                   // Form Fields
                   // 1. Customer Name (Required)
                   const Text(
@@ -128,30 +132,38 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                     controller: _nameController,
                     style: TextStyle(
                       fontSize: 15,
-                      color: isDarkMode ? Colors.white : const Color(0xFF1D293D),
+                      color:
+                          isDarkMode ? Colors.white : const Color(0xFF1D293D),
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter customer name',
                       hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                       filled: true,
-                      fillColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                      fillColor:
+                          isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF1D293D), width: 1.5),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
@@ -160,9 +172,9 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                       return null;
                     },
                   ),
-                  
+
                   const SizedBox(height: 14),
-                  
+
                   // 2. Phone Number (Optional)
                   const Text(
                     'Phone Number',
@@ -178,35 +190,43 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                     keyboardType: TextInputType.phone,
                     style: TextStyle(
                       fontSize: 15,
-                      color: isDarkMode ? Colors.white : const Color(0xFF1D293D),
+                      color:
+                          isDarkMode ? Colors.white : const Color(0xFF1D293D),
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter phone number',
                       hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                       filled: true,
-                      fillColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                      fillColor:
+                          isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF1D293D), width: 1.5),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 14),
-                  
+
                   // 3. Address (Optional)
                   const Text(
                     'Address',
@@ -221,35 +241,43 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                     controller: _addressController,
                     style: TextStyle(
                       fontSize: 15,
-                      color: isDarkMode ? Colors.white : const Color(0xFF1D293D),
+                      color:
+                          isDarkMode ? Colors.white : const Color(0xFF1D293D),
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter address',
                       hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                       filled: true,
-                      fillColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                      fillColor:
+                          isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF1D293D), width: 1.5),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 14),
-                  
+
                   // 4. Notes (Optional) - Multiline
                   const Text(
                     'Notes',
@@ -265,35 +293,43 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                     maxLines: 3,
                     style: TextStyle(
                       fontSize: 15,
-                      color: isDarkMode ? Colors.white : const Color(0xFF1D293D),
+                      color:
+                          isDarkMode ? Colors.white : const Color(0xFF1D293D),
                     ),
                     decoration: InputDecoration(
                       hintText: 'Enter notes',
                       hintStyle: const TextStyle(color: Color(0xFF9CA3AF)),
                       filled: true,
-                      fillColor: isDarkMode ? const Color(0xFF1E293B) : Colors.white,
+                      fillColor:
+                          isDarkMode ? const Color(0xFF1E293B) : Colors.white,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                         borderSide: BorderSide(
-                          color: isDarkMode ? Colors.grey.shade700 : const Color(0xFFE5E7EB),
+                          color: isDarkMode
+                              ? Colors.grey.shade700
+                              : const Color(0xFFE5E7EB),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
+                        borderSide: const BorderSide(
+                            color: Color(0xFF1D293D), width: 1.5),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 14),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 32),
-                  
+
                   // Save Button
                   SizedBox(
                     width: double.infinity,
@@ -326,7 +362,7 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
                             ),
                     ),
                   ),
-                  
+
                   const SizedBox(height: 20),
                 ],
               ),
@@ -340,15 +376,15 @@ class _AddCustomerScreenState extends ConsumerState<AddCustomerScreen> {
   Future<void> _saveCustomer() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
+
       await ref.read(customerProvider.notifier).addCustomer(
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim(),
-        address: _addressController.text.trim(),
-      );
-      
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim(),
+            address: _addressController.text.trim(),
+          );
+
       setState(() => _isLoading = false);
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

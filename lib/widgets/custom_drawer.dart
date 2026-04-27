@@ -175,6 +175,7 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 _buildDrawerItem(Icons.dark_mode, 'Dark Mode', () {
                   ref.read(themeProvider.notifier).toggleTheme();
                   Navigator.pop(context);
+                  
                 }),
                 _buildDrawerItem(Icons.help, 'Help & Support', () {
                   Navigator.pop(context);

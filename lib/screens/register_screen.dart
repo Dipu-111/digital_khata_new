@@ -24,6 +24,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _agreeTerms = false;
 
   Future<void> _register() async {
+    // Check form validation FIRST
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+
     if (!_agreeTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -46,9 +51,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     setState(() => _isLoading = true);
 
-    final success = await ref
-        .read(authProvider.notifier)
-        .register(
+    final success = await ref.read(authProvider.notifier).register(
           shopName: _shopNameController.text.trim(),
           ownerName: _ownerNameController.text.trim(),
           phone: _phoneController.text.trim(),
@@ -180,9 +183,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Shop Name
+                    // Shop Name (Required)
                     const Text(
-                      'Shop Name',
+                      'Shop Name *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -209,24 +212,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1D293D),
-                            width: 1.5,
-                          ),
+                              color: Color(0xFF1D293D), width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                       ),
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Shop name is required'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Shop name is required';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
 
-                    // Owner Name
+                    // Owner Name (Required)
                     const Text(
-                      'Owner Name',
+                      'Owner Name *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -253,18 +257,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1D293D),
-                            width: 1.5,
-                          ),
+                              color: Color(0xFF1D293D), width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                       ),
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Owner name is required'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Owner name is required';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 24),
@@ -285,9 +290,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Phone Number
+                    // Phone Number (Required)
                     const Text(
-                      'Phone Number',
+                      'Phone Number *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -301,10 +306,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       style: const TextStyle(fontSize: 15),
                       decoration: InputDecoration(
                         hintText: 'Enter your mobile number',
-                        prefixIcon: const Icon(
-                          Icons.phone_android_outlined,
-                          size: 20,
-                        ),
+                        prefixIcon:
+                            const Icon(Icons.phone_android_outlined, size: 20),
                         filled: true,
                         fillColor: const Color(0xFFF8FAFC),
                         border: OutlineInputBorder(
@@ -318,25 +321,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1D293D),
-                            width: 1.5,
-                          ),
+                              color: Color(0xFF1D293D), width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                       ),
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Phone number is required'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Phone number is required';
+                        }
+                        if (value.trim().length < 10) {
+                          return 'Enter a valid phone number';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Password
+                    // Password (Required)
                     const Text(
-                      'Password',
+                      'Password *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -349,7 +356,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       obscureText: _obscurePassword,
                       style: const TextStyle(fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Create a password',
+                        hintText: 'Create a password (min 4 characters)',
                         prefixIcon: const Icon(Icons.lock_outline, size: 20),
                         suffixIcon: IconButton(
                           icon: Icon(
@@ -377,25 +384,29 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1D293D),
-                            width: 1.5,
-                          ),
+                              color: Color(0xFF1D293D), width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                       ),
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Password is required'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Password is required';
+                        }
+                        if (value.length < 4) {
+                          return 'Password must be at least 4 characters';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 20),
 
-                    // Confirm Password
+                    // Confirm Password (Required)
                     const Text(
-                      'Confirm Password',
+                      'Confirm Password *',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -437,18 +448,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: const BorderSide(
-                            color: Color(0xFF1D293D),
-                            width: 1.5,
-                          ),
+                              color: Color(0xFF1D293D), width: 1.5),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 14,
                         ),
                       ),
-                      validator: (value) => value?.isEmpty == true
-                          ? 'Please confirm your password'
-                          : null,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please confirm your password';
+                        }
+                        return null;
+                      },
                     ),
 
                     const SizedBox(height: 24),
@@ -480,20 +492,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
                               ),
-                              children: [
-                                const TextSpan(text: 'I agree to the '),
+                              children: const [
+                                TextSpan(text: 'I agree to the '),
                                 TextSpan(
                                   text: 'Terms of Service',
                                   style: TextStyle(
-                                    color: const Color(0xFF1D293D),
+                                    color: Color(0xFF1D293D),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                const TextSpan(text: ' and '),
+                                TextSpan(text: ' and '),
                                 TextSpan(
                                   text: 'Privacy Policy',
                                   style: TextStyle(
-                                    color: const Color(0xFF1D293D),
+                                    color: Color(0xFF1D293D),
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
@@ -561,7 +573,9 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                             );
                           },
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.zero,
+                          ),
                           child: const Text(
                             'Login Here',
                             style: TextStyle(
