@@ -14,7 +14,7 @@ class CustomDrawer extends ConsumerStatefulWidget {
 
   const CustomDrawer({
     super.key,
-    this.onMenuItemSelected, // 👈 Now optional
+    this.onMenuItemSelected,
   });
 
   @override
@@ -159,9 +159,15 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                   }
                   Navigator.pop(context);
                 }),
-                _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                _buildDrawerItem(Icons.wallet, 'Expenses', () {
                   if (widget.onMenuItemSelected != null) {
                     widget.onMenuItemSelected!(2);
+                  }
+                  Navigator.pop(context);
+                }),
+                _buildDrawerItem(Icons.notifications, 'Reminders', () {
+                  if (widget.onMenuItemSelected != null) {
+                    widget.onMenuItemSelected!(3);
                   }
                   Navigator.pop(context);
                 }),
@@ -171,11 +177,6 @@ class _CustomDrawerState extends ConsumerState<CustomDrawer> {
                 }),
                 _buildDrawerItem(Icons.file_download, 'Export Excel', () {
                   _exportData();
-                }),
-                _buildDrawerItem(Icons.dark_mode, 'Dark Mode', () {
-                  ref.read(themeProvider.notifier).toggleTheme();
-                  Navigator.pop(context);
-                  
                 }),
                 _buildDrawerItem(Icons.help, 'Help & Support', () {
                   Navigator.pop(context);

@@ -248,7 +248,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            'रु ${amount.toStringAsFixed(0)}',
+            'Rs ${amount.toStringAsFixed(0)}',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -296,7 +296,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           ),
           const SizedBox(height: 6),
           Text(
-            'रु ${netBalance.toStringAsFixed(0)}',
+            'Rs ${netBalance.toStringAsFixed(0)}',
             style: const TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -380,7 +380,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'रु ${t.amount.toStringAsFixed(0)}',
+                'Rs ${t.amount.toStringAsFixed(0)}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14,

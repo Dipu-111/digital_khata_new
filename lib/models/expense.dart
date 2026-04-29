@@ -23,10 +23,13 @@ class Expense {
   final String description;
   
   @HiveField(6)
-  final String paymentMethod; // cash, card, upi
+  final String paymentMethod;
   
   @HiveField(7)
   final DateTime createdAt;
+  
+  @HiveField(8)
+  final String? receiptPath;
 
   Expense({
     required this.id,
@@ -37,6 +40,7 @@ class Expense {
     required this.description,
     required this.paymentMethod,
     required this.createdAt,
+    this.receiptPath,
   });
 }
 

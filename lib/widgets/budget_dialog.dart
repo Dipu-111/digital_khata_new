@@ -28,7 +28,9 @@ class _BudgetDialogState extends ConsumerState<BudgetDialog> {
       ref.read(budgetProvider.notifier).setBudget(monthlyLimit);
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Budget updated successfully'), backgroundColor: Colors.green),
+        const SnackBar(
+            content: Text('Budget updated successfully'),
+            backgroundColor: Colors.green),
       );
     }
   }
@@ -42,7 +44,8 @@ class _BudgetDialogState extends ConsumerState<BudgetDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Set Monthly Budget', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text('Set Monthly Budget',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 16),
             Form(
               key: _formKey,
@@ -50,7 +53,7 @@ class _BudgetDialogState extends ConsumerState<BudgetDialog> {
                 controller: _monthlyBudgetController,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
-                  labelText: 'Monthly Budget (₹)',
+                  labelText: 'Monthly Budget (Rs)',
                   hintText: 'Enter your monthly budget',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.currency_rupee),
@@ -80,7 +83,8 @@ class _BudgetDialogState extends ConsumerState<BudgetDialog> {
                     onPressed: _saveBudget,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1D293D),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     child: const Text('Save'),
                   ),

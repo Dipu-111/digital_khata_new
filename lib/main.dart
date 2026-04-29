@@ -1,3 +1,4 @@
+import 'package:digital_khata_new/models/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/database/hive_service.dart';
@@ -6,10 +7,13 @@ import 'package:digital_khata_new/screens/home_screen.dart';
 import 'package:digital_khata_new/providers/theme_provider.dart';
 import 'package:digital_khata_new/services/biometric_service.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService.init();
+  Hive.registerAdapter(ExpenseAdapter());
+  Hive.registerAdapter(BudgetAdapter());
   runApp(const ProviderScope(child: DigitalKhataApp()));
 }
 

@@ -6,7 +6,6 @@ import 'package:digital_khata_new/providers/auth_provider.dart';
 import 'package:digital_khata_new/providers/customer_provider.dart';
 import 'package:digital_khata_new/providers/theme_provider.dart';
 import 'package:digital_khata_new/screens/add_transaction_screen.dart';
-import 'package:digital_khata_new/widgets/custom_drawer.dart';
 import 'package:digital_khata_new/widgets/edit_customer_dialog.dart';
 
 class CustomerDetailScreen extends ConsumerStatefulWidget {
@@ -78,15 +77,38 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
     final user = ref.read(authProvider);
     final isDarkMode = ref.watch(themeProvider) == ThemeMode.dark;
 
+    // Calculate meaningful texts based on balance
+    String balanceLabel;
+    String balanceSubtitle;
+    Color balanceColor;
+
+    if (balance > 0) {
+      balanceLabel = 'Customer Owes You';
+      balanceSubtitle = 'Pending payment from customer';
+      balanceColor = const Color(0xFFDC2626); // Red
+    } else if (balance < 0) {
+      balanceLabel = 'You Owe Customer';
+      balanceSubtitle = 'Refund or credit to customer';
+      balanceColor = const Color(0xFF16A34A); // Green
+    } else {
+      balanceLabel = 'Balance Settled';
+      balanceSubtitle = 'All payments cleared';
+      balanceColor = const Color(0xFF6B7280); // Grey
+    }
+
+    // Calculate totals
+    double totalCreditGiven = 0;
+    double totalPaymentReceived = 0;
+    for (var t in transactions) {
+      if (t.type == 'credit') {
+        totalCreditGiven += t.amount;
+      } else if (t.type == 'payment') {
+        totalPaymentReceived += t.amount;
+      }
+    }
+
     return Scaffold(
       backgroundColor: isDarkMode ? const Color(0xFF0F172A) : Colors.white,
-      drawer: CustomDrawer(
-        onMenuItemSelected: (index) {
-          if (index == 0) {
-            Navigator.pushReplacementNamed(context, '/home');
-          }
-        },
-      ),
       appBar: AppBar(
         title: Text(
           widget.customer.name,
@@ -173,7 +195,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
               ),
             ),
 
-            // Total Due Card
+            // Balance Card with Option B (Label + Subtitle)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
@@ -191,28 +213,121 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'TOTAL DUE',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF6B7280),
-                          letterSpacing: 0.5,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                balanceLabel,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: balanceColor,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                balanceSubtitle,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDarkMode
+                                      ? Colors.grey.shade500
+                                      : const Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            'Rs ${balance.abs().toStringAsFixed(0)}',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: balanceColor,
+                            ),
+                          ),
+                        ],
                       ),
-                      Text(
-                        'रु ${balance.toStringAsFixed(0)}',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: balance > 0
-                              ? const Color(0xFFDC2626)
-                              : const Color(0xFF16A34A),
+                      if (balance != 0) ...[
+                        const SizedBox(height: 12),
+                        const Divider(color: Color(0xFFE5E7EB), thickness: 0.5),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFDC2626),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Goods Given',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDarkMode
+                                        ? Colors.grey.shade400
+                                        : const Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Rs ${totalCreditGiven.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFFDC2626),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF16A34A),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Payments Received',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDarkMode
+                                        ? Colors.grey.shade400
+                                        : const Color(0xFF6B7280),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Rs ${totalPaymentReceived.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF16A34A),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -238,7 +353,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         ).then((_) => setState(() {}));
                       },
                       icon: const Icon(Icons.arrow_downward, size: 18),
-                      label: const Text('Add Credit'),
+                      label: const Text('Goods Given'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF5F7FA),
                         foregroundColor: const Color(0xFFDC2626),
@@ -265,7 +380,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                         ).then((_) => setState(() {}));
                       },
                       icon: const Icon(Icons.arrow_upward, size: 18),
-                      label: const Text('Receive Payment'),
+                      label: const Text('Payment Received'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFF5F7FA),
                         foregroundColor: const Color(0xFF16A34A),
@@ -360,7 +475,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   t.type == 'credit'
-                                      ? 'Credit Added'
+                                      ? 'Goods Given'
                                       : 'Payment Received',
                                   style: TextStyle(
                                     fontSize: 12,
@@ -372,7 +487,7 @@ class _CustomerDetailScreenState extends ConsumerState<CustomerDetailScreen> {
                               ],
                             ),
                             Text(
-                              'रु ${t.amount.toStringAsFixed(0)}',
+                              'Rs ${t.amount.toStringAsFixed(0)}',
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,

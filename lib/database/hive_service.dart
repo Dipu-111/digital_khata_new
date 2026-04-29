@@ -1,4 +1,5 @@
 import 'package:digital_khata_new/models/expense.dart';
+
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:digital_khata_new/models/user.dart';
 import 'package:digital_khata_new/models/customer.dart';
@@ -13,7 +14,7 @@ class HiveService {
   static late Box<Customer> customerBox;
   static late Box<Transaction> transactionBox;
   static late Box<Expense> expenseBox;
-static late Box<Budget> budgetBox;
+  static late Box<Budget> budgetBox;
 
   static Future<void> init() async {
     await Hive.initFlutter();
@@ -29,7 +30,6 @@ static late Box<Budget> budgetBox;
     transactionBox = await Hive.openBox<Transaction>(transactionsBox);
     expenseBox = await Hive.openBox<Expense>('expenses');
 budgetBox = await Hive.openBox<Budget>('budget');
-
   }
 
   // ==================== USER METHODS ====================
@@ -182,33 +182,36 @@ budgetBox = await Hive.openBox<Budget>('budget');
     return total;
   }
 
-
-
-
 // Expense methods
-static Future<void> addExpense(Expense expense) async {
-  await expenseBox.put(expense.id, expense);
-}
+ 
 
-static Future<void> updateExpense(Expense expense) async {
-  await expenseBox.put(expense.id, expense);
-}
+  static Future<void> updateExpense(Expense expense) async {
+    await expenseBox.put(expense.id, expense);
+  }
 
-static Future<void> deleteExpense(String id) async {
-  await expenseBox.delete(id);
+  static Future<void> deleteExpense(String id) async {
+    await expenseBox.delete(id);
+  }
+
+  
+
+  static Expense? getExpenseById(String id) {
+    return expenseBox.get(id);
+  }
+
+// Budget methods
+  static Future<void> addExpense(Expense expense) async {
+  await expenseBox.put(expense.id, expense);
+  print('✅ Expense saved: ${expense.id}');
 }
 
 static List<Expense> getExpensesByUserId(String userId) {
   return expenseBox.values.where((e) => e.userId == userId).toList();
 }
 
-static Expense? getExpenseById(String id) {
-  return expenseBox.get(id);
-}
-
-// Budget methods
 static Future<void> saveBudget(Budget budget) async {
   await budgetBox.put(budget.userId, budget);
+  print('✅ Budget saved: ${budget.monthlyLimit}');
 }
 
 static Budget? getBudget(String userId) {
