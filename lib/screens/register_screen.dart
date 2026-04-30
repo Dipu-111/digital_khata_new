@@ -24,63 +24,61 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   bool _agreeTerms = false;
 
   Future<void> _register() async {
-    // Check form validation FIRST
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    if (!_agreeTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please agree to the terms and conditions'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    if (_passwordController.text != _confirmPasswordController.text) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Passwords do not match'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    final success = await ref.read(authProvider.notifier).register(
-          shopName: _shopNameController.text.trim(),
-          ownerName: _ownerNameController.text.trim(),
-          phone: _phoneController.text.trim(),
-          password: _passwordController.text,
-        );
-
-    setState(() => _isLoading = false);
-
-    if (success) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Registration successful! Please login.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Phone number already registered'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  if (!_formKey.currentState!.validate()) {
+    return;
+  }
+  
+  if (!_agreeTerms) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please agree to the terms and conditions'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
   }
 
+  if (_passwordController.text != _confirmPasswordController.text) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Passwords do not match'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  setState(() => _isLoading = true);
+  
+  final success = await ref.read(authProvider.notifier).register(
+    shopName: _shopNameController.text.trim(),
+    ownerName: _ownerNameController.text.trim(),
+    phone: _phoneController.text.trim(),
+    password: _passwordController.text,
+  );
+  
+  setState(() => _isLoading = false);
+  
+  if (success && mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Registration successful!'),
+        backgroundColor: Colors.green,
+      ),
+    );
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  } else if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Phone number already registered'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(

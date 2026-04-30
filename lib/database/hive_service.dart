@@ -4,6 +4,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:digital_khata_new/models/user.dart';
 import 'package:digital_khata_new/models/customer.dart';
 import 'package:digital_khata_new/models/transaction.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HiveService {
   static const String usersBox = 'users';
@@ -217,4 +218,25 @@ static Future<void> saveBudget(Budget budget) async {
 static Budget? getBudget(String userId) {
   return budgetBox.get(userId);
 }
+  // Clear login state (add this method)
+  static Future<void> clearLoginState() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('is_logged_in');
+    await prefs.remove('user_id');
+  }
+
+  // Get logged in user ID (add this if missing)
+  static Future<String?> getLoggedInUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('user_id');
+  }
+
+  // Save login state (add this if missing)
+  static Future<void> saveLoginState(String userId, bool isLoggedIn) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('is_logged_in', isLoggedIn);
+    if (isLoggedIn) {
+      await prefs.setString('user_id', userId);
+    }
+  }
 }

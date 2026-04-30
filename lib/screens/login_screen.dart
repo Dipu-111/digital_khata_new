@@ -1,4 +1,5 @@
-import 'package:digital_khata_new/services/biometric_service.dart';
+// import 'package:digital_khata_new/services/biometric_service.dart';
+import 'package:digital_khata_new/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
@@ -19,45 +20,39 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _obscurePassword = true;
 
   Future<void> _login() async {
-    if (_phoneController.text.trim().isEmpty ||
-        _passwordController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter phone number and password'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    setState(() => _isLoading = true);
-
-    final success = ref
-        .read(authProvider.notifier)
-        .login(_phoneController.text.trim(), _passwordController.text);
-
-    setState(() => _isLoading = false);
-
-    if (success && mounted) {
-      // ✅ ADD THIS - Save login state
-      final user = ref.read(authProvider);
-      if (user != null) {
-        await BiometricService.saveLoginState(user.id, true);
-      }
-
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
-    } else if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Invalid phone number or password'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+  if (_phoneController.text.trim().isEmpty ||
+      _passwordController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Please enter phone number and password'),
+        backgroundColor: Colors.orange,
+      ),
+    );
+    return;
   }
+
+  setState(() => _isLoading = true);
+
+  final success = await ref
+      .read(authProvider.notifier)
+      .login(_phoneController.text.trim(), _passwordController.text);
+
+  setState(() => _isLoading = false);
+
+  if (success && mounted) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  } else if (mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Invalid phone number or password'),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+}
 
   @override
   Widget build(BuildContext context) {
