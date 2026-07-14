@@ -1,19 +1,14 @@
-import 'package:digital_khata_new/models/expense.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:digital_khata_new/database/hive_service.dart';
 import 'package:digital_khata_new/screens/login_screen.dart';
 import 'package:digital_khata_new/screens/home_screen.dart';
 import 'package:digital_khata_new/providers/theme_provider.dart';
-import 'package:digital_khata_new/services/biometric_service.dart';
 import 'package:digital_khata_new/providers/auth_provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await HiveService.init();
-  Hive.registerAdapter(ExpenseAdapter());
-  Hive.registerAdapter(BudgetAdapter());
   runApp(const ProviderScope(child: DigitalKhataApp()));
 }
 
@@ -21,7 +16,7 @@ class DigitalKhataApp extends ConsumerStatefulWidget {
   const DigitalKhataApp({super.key});
 
   @override
-  ConsumerState<DigitalKhataApp> createState() => _DigitalKhataAppState();
+ConsumerState<DigitalKhataApp> createState() => _DigitalKhataAppState();
 }
 
 class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
@@ -35,22 +30,16 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
   }
 
   Future<void> _checkLoginStatus() async {
-    // Check if user was previously logged in
-    final isLoggedIn = await BiometricService.isAlreadyLoggedIn();
-    final userId = await BiometricService.getLoggedInUserId();
-
-    if (isLoggedIn && userId != null) {
-      // Get user from database
+    final userId = await HiveService.getLoggedInUserId();
+    if (userId != null) {
       final user = HiveService.getUserById(userId);
       if (user != null) {
-        // Set the user in auth provider
         ref.read(authProvider.notifier).setUser(user);
         setState(() {
           _isLoggedIn = true;
         });
       }
     }
-
     setState(() {
       _isLoading = false;
     });
@@ -61,12 +50,10 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
     final themeMode = ref.watch(themeProvider);
 
     if (_isLoading) {
-      return MaterialApp(
+      return const MaterialApp(
         home: Scaffold(
           body: Center(
-            child: CircularProgressIndicator(
-              color: const Color(0xFF1D293D),
-            ),
+            child: CircularProgressIndicator(),
           ),
         ),
       );
@@ -92,7 +79,7 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFFF8FAFC),
+          fillColor: Color(0xFFF8FAFC),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -101,8 +88,7 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFF1D293D), width: 1.5),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
@@ -131,7 +117,7 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF1E293B),
+          fillColor: Color(0xFF1E293B),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -140,8 +126,7 @@ class _DigitalKhataAppState extends ConsumerState<DigitalKhataApp> {
             borderRadius: BorderRadius.circular(12),
             borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1.5),
           ),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(

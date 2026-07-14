@@ -27,13 +27,11 @@ class AuthNotifier extends StateNotifier<User?> {
     required String phone,
     required String password,
   }) async {
-    // Check if phone already exists
     final existingUser = HiveService.getUserByPhone(phone);
     if (existingUser != null) {
-      return false; // Phone already registered
+      return false;
     }
 
-    // Create new user
     final user = User(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       shopName: shopName,

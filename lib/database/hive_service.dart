@@ -1,9 +1,8 @@
-import 'package:digital_khata_new/models/expense.dart';
-
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:digital_khata_new/models/user.dart';
 import 'package:digital_khata_new/models/customer.dart';
 import 'package:digital_khata_new/models/transaction.dart';
+import 'package:digital_khata_new/models/expense.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HiveService {
@@ -20,21 +19,20 @@ class HiveService {
   static Future<void> init() async {
     await Hive.initFlutter();
 
-    // Register adapters
     Hive.registerAdapter(UserAdapter());
     Hive.registerAdapter(CustomerAdapter());
     Hive.registerAdapter(TransactionAdapter());
+    Hive.registerAdapter(ExpenseAdapter());
+    Hive.registerAdapter(BudgetAdapter());
 
-    // Open boxes
     userBox = await Hive.openBox<User>(usersBox);
     customerBox = await Hive.openBox<Customer>(customersBox);
     transactionBox = await Hive.openBox<Transaction>(transactionsBox);
     expenseBox = await Hive.openBox<Expense>('expenses');
-budgetBox = await Hive.openBox<Budget>('budget');
+    budgetBox = await Hive.openBox<Budget>('budget');
   }
 
-  // ==================== USER METHODS ====================
-
+  // User Methods
   static Future<void> addUser(User user) async {
     await userBox.put(user.id, user);
   }
@@ -55,8 +53,7 @@ budgetBox = await Hive.openBox<Budget>('budget');
     return userBox.values.toList();
   }
 
-  // ==================== CUSTOMER METHODS ====================
-
+  // Customer Methods
   static Future<void> addCustomer(Customer customer) async {
     await customerBox.put(customer.id, customer);
   }
@@ -77,8 +74,7 @@ budgetBox = await Hive.openBox<Budget>('budget');
     return customerBox.get(id);
   }
 
-  // ==================== TRANSACTION METHODS ====================
-
+  // Transaction Methods
   static Future<void> addTransaction(Transaction transaction) async {
     await transactionBox.put(transaction.id, transaction);
   }
@@ -127,64 +123,10 @@ budgetBox = await Hive.openBox<Budget>('budget');
     return total;
   }
 
-  // ==================== DELETE ALL DATA FOR USER ====================
-
-  static Future<void> deleteAllUserData(String userId) async {
-    // Delete all customers for this user
-    final customers = getCustomersByUserId(userId);
-    for (var c in customers) {
-      await deleteCustomer(c.id);
-    }
-
-    // Delete all transactions for this user
-    final transactions = getTransactionsByUserId(userId);
-    for (var t in transactions) {
-      await deleteTransaction(t.id);
-    }
+  // Expense Methods
+  static Future<void> addExpense(Expense expense) async {
+    await expenseBox.put(expense.id, expense);
   }
-
-  // ==================== CLEAR ALL DATA (Admin/Reset) ====================
-
-  static Future<void> clearAllData() async {
-    await customerBox.clear();
-    await transactionBox.clear();
-    await userBox.clear();
-  }
-
-  // ==================== GET COUNTS ====================
-
-  static int getCustomerCount(String userId) {
-    return getCustomersByUserId(userId).length;
-  }
-
-  static int getTransactionCount(String userId) {
-    return getTransactionsByUserId(userId).length;
-  }
-
-  static double getTotalCredit(String userId) {
-    final transactions = getTransactionsByUserId(userId);
-    double total = 0;
-    for (var t in transactions) {
-      if (t.type == 'credit') {
-        total += t.amount;
-      }
-    }
-    return total;
-  }
-
-  static double getTotalPayment(String userId) {
-    final transactions = getTransactionsByUserId(userId);
-    double total = 0;
-    for (var t in transactions) {
-      if (t.type == 'payment') {
-        total += t.amount;
-      }
-    }
-    return total;
-  }
-
-// Expense methods
- 
 
   static Future<void> updateExpense(Expense expense) async {
     await expenseBox.put(expense.id, expense);
@@ -194,44 +136,35 @@ budgetBox = await Hive.openBox<Budget>('budget');
     await expenseBox.delete(id);
   }
 
-  
-
   static Expense? getExpenseById(String id) {
     return expenseBox.get(id);
   }
 
-// Budget methods
-  static Future<void> addExpense(Expense expense) async {
-  await expenseBox.put(expense.id, expense);
-  print('✅ Expense saved: ${expense.id}');
-}
+  static List<Expense> getExpensesByUserId(String userId) {
+    return expenseBox.values.where((e) => e.userId == userId).toList();
+  }
 
-static List<Expense> getExpensesByUserId(String userId) {
-  return expenseBox.values.where((e) => e.userId == userId).toList();
-}
+  // Budget Methods
+  static Future<void> saveBudget(Budget budget) async {
+    await budgetBox.put(budget.userId, budget);
+  }
 
-static Future<void> saveBudget(Budget budget) async {
-  await budgetBox.put(budget.userId, budget);
-  print('✅ Budget saved: ${budget.monthlyLimit}');
-}
+  static Budget? getBudget(String userId) {
+    return budgetBox.get(userId);
+  }
 
-static Budget? getBudget(String userId) {
-  return budgetBox.get(userId);
-}
-  // Clear login state (add this method)
+  // Login State Methods
   static Future<void> clearLoginState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('is_logged_in');
     await prefs.remove('user_id');
   }
 
-  // Get logged in user ID (add this if missing)
   static Future<String?> getLoggedInUserId() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('user_id');
   }
 
-  // Save login state (add this if missing)
   static Future<void> saveLoginState(String userId, bool isLoggedIn) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('is_logged_in', isLoggedIn);

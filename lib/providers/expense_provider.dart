@@ -28,6 +28,13 @@ class ExpenseNotifier extends StateNotifier<List<Expense>> {
       print('📊 Loaded ${state.length} expenses');
     }
   }
+    Future<void> deleteExpense(String id) async {
+    print('🗑️ Deleting expense: $id');
+    await HiveService.deleteExpense(id);
+    _loadExpenses();
+    print('✅ Expense deleted');
+  }
+ 
 
   Future<void> addExpense({
     required double amount,
@@ -202,6 +209,7 @@ class BudgetNotifier extends StateNotifier<Budget?> {
       print('💰 Loaded budget: ${state?.monthlyLimit}');
     }
   }
+  
 
   Future<void> setBudget(double monthlyLimit) async {
     print('💰 Setting budget: $monthlyLimit');
